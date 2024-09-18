@@ -1,17 +1,6 @@
 import * as THREE from 'three'
-import {
-    Fn,
-    uniform,
-    storage,
-    attribute,
-    float,
-    vec2,
-    vec3,
-    color,
-    instanceIndex,
-} from 'three/tsl'
-
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js'
+import { attribute, color } from 'three'
+import { GUI } from 'lil-gui'
 
 let camera, scene, renderer
 
@@ -23,8 +12,6 @@ function init() {
 
     scene = new THREE.Scene()
 
-    // use a compute shader to animate the point cloud's vertex data.
-
     const particleNode = attribute('particle', 'vec2')
 
     const pointsGeometry = new THREE.BufferGeometry()
@@ -32,15 +19,14 @@ function init() {
         'position',
         new THREE.BufferAttribute(new Float32Array(3), 3)
     ) // single vertex ( not triangle )
-    pointsGeometry.setAttribute('particle', particleBuffer) // dummy the position points as instances
-    pointsGeometry.drawRange.count = 1 // force render points as instances ( not triangle )
+    pointsGeometry.drawRange.count = 1
 
     const pointsMaterial = new THREE.PointsNodeMaterial()
     pointsMaterial.colorNode = particleNode.add(color(0xffffff))
     pointsMaterial.positionNode = particleNode
 
     const mesh = new THREE.Points(pointsGeometry, pointsMaterial)
-    mesh.count = particleNum
+    mesh.count = 1
     scene.add(mesh)
 
     renderer = new THREE.WebGPURenderer({ antialias: true })
@@ -55,9 +41,7 @@ function init() {
     // gui
 
     const gui = new GUI()
-
-    gui.add(scaleVector, 'x', 0, 1, 0.01)
-    gui.add(scaleVector, 'y', 0, 1, 0.01)
+    gui
 }
 
 function onWindowResize() {
@@ -73,10 +57,12 @@ function onMouseMove(event) {
     const width = window.innerWidth
     const height = window.innerHeight
 
-    pointerVector.set((x / width - 0.5) * 2.0, (-y / height + 0.5) * 2.0)
+    x
+    y
+    width
+    height
 }
 
 function animate() {
-    renderer.compute(computeNode)
     renderer.render(scene, camera)
 }

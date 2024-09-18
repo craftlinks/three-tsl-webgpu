@@ -17,10 +17,9 @@ function init() {
         dims.x * 0.5,
         dims.y * 0.5,
         -dims.y * 0.5,
-        -1000,
+        0,
         1000
     )
-
 
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x000000)
@@ -29,20 +28,20 @@ function init() {
     const vertices = new Float32Array([
 
         // Bottom-left corner
-        -dims.x * 0.5 + 400,
-        -dims.y * 0.5 + 400,
+        -dims.x * 0.5 + 10,
+        -dims.y * 0.5 + 10,
         0,
         // Bottom-right corner
-        dims.x * 0.5 - 400,
-        -dims.y * 0.5 + 400,
+        dims.x * 0.5 - 10,
+        -dims.y * 0.5 + 10,
         0,
         // Top-right corner
-        dims.x * 0.5 - 400,
-        dims.y * 0.5 - 400,
+        dims.x * 0.5 - 10,
+        dims.y * 0.5 - 10,
         0,
         // Top-left corner
-        -dims.x * 0.5 + 400,
-        dims.y * 0.5 - 400,
+        -dims.x * 0.5 + 10,
+        dims.y * 0.5 - 10,
         0,
     ])
 
@@ -96,7 +95,5 @@ function onMouseMove(event) {
 }
 
 function animate() {
-    const r = Date.now() * 0.005;
-    camera.rotation.set(Math.cos(0.01 * r), Math.sin(0.1 * r),  Math.cos(0.1 * r) * Math.sin(0.1 * r))
     renderer.render(scene, camera)
 }

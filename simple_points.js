@@ -3,68 +3,67 @@ import { GUI } from 'lil-gui'
 
 let camera, scene, renderer
 
-const canvas = document.querySelector('.webgpu')
+const canvas = document.querySelector('.webgpu');
 const dims = {
     x: canvas.clientWidth,
-    y: canvas.clientHeight,
+    y: canvas.clientHeight
 }
 
 init()
 
+
+
 function init() {
-    camera = new THREE.OrthographicCamera(
-        -dims.x * 0.5,
-        dims.x * 0.5,
-        dims.y * 0.5,
-        -dims.y * 0.5,
-        -1000,
-        1000
-    )
+    camera = new THREE.OrthographicCamera(-dims.x*0.5, dims.x*0.5, dims.y*0.5, -dims.y*0.5, 0, 1000)
+
 
 
     scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x000000)
+    scene.background = new THREE.Color( 0x000000 );
     scene.add(camera)
 
-    const vertices = new Float32Array([
-
-        // Bottom-left corner
-        -dims.x * 0.5 + 400,
-        -dims.y * 0.5 + 400,
-        0,
-        // Bottom-right corner
-        dims.x * 0.5 - 400,
-        -dims.y * 0.5 + 400,
-        0,
-        // Top-right corner
-        dims.x * 0.5 - 400,
-        dims.y * 0.5 - 400,
-        0,
+    const points_positions = new Float32Array([
         // Top-left corner
-        -dims.x * 0.5 + 400,
-        dims.y * 0.5 - 400,
-        0,
+        -dims.x*0.5,  dims.y*0.5, 0,
+        // Bottom-right corner
+        dims.x*0.5, -dims.y*0.5, 0,
+        // Bottom-left corner
+        -dims.x*0.5, -dims.y*0.5, 0,
+        // Top-right corner
+        dims.x*0.5,  dims.y*0.5, 0,
+        // Center point
+        0,0,0,
+        // Top center
+        0,dims.y*0.5,0,
+        // Bottom center
+        0,-dims.y*0.5,0,
+        // Right center
+        dims.x*0.5,0,0,
+        // Left center
+        -dims.x*0.5,0,0,
+
     ])
 
-    
+    const item_size = 3
 
-    const indices = [0, 1, 2, 0, 2, 3]
+    const pointsGeometry = new THREE.BufferGeometry()
+    pointsGeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(points_positions, item_size)
+    ) 
+    pointsGeometry.setDrawRange(0, points_positions.length / item_size)
 
-    const geometry = new THREE.BufferGeometry()
-    geometry.setIndex(indices)
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+    const mesh = new THREE.Points(pointsGeometry)
+    scene.add(mesh)
 
-    const wireframe = new THREE.WireframeGeometry(geometry)
 
-    const line = new THREE.LineSegments(wireframe)
-
-    scene.add(line)
 
     renderer = new THREE.WebGPURenderer({ antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.setAnimationLoop(animate)
     document.body.appendChild(renderer.domElement)
+
 
     window.addEventListener('resize', onWindowResize)
     window.addEventListener('mousemove', onMouseMove)
@@ -96,7 +95,5 @@ function onMouseMove(event) {
 }
 
 function animate() {
-    const r = Date.now() * 0.005;
-    camera.rotation.set(Math.cos(0.01 * r), Math.sin(0.1 * r),  Math.cos(0.1 * r) * Math.sin(0.1 * r))
     renderer.render(scene, camera)
 }

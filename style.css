@@ -1,13 +1,18 @@
 html,
 body
 {
-    overflow: hidden;
-    background-color: #000000;
+    margin: 0; /* Ensure no default margin */
+    padding: 10; /* Ensure no default padding */
+    overflow: hidden; /* Prevent overflow */
+    background-color: #ffffff;
+    height: 100%; /* Ensure body and html take full height */
 }
+
 .webgpu
 {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    outline: none;
+    width: 100%;
+    height: 100%;
 }

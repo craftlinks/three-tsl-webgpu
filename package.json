@@ -1,0 +1,17 @@
+{
+  "name": "three-tsl-webgpu",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "Craft Life",
+  "license": "ISC",
+  "dependencies": {
+    "lil-gui": "^0.19.2",
+    "vite": "^5.4.6"
+  }
+}

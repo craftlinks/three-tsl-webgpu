@@ -1,5 +1,9 @@
+// TODO:
+// - instead of points, I want to use a plane_geometry
+// - replace plane-geometry with a customn geometry
+// - add an anchor-trails
+
 import * as THREE from 'three'
-import { GUI } from 'lil-gui'
 
 let camera, scene, renderer
 
@@ -9,7 +13,12 @@ const dims = {
     y: canvas.clientHeight,
 }
 
-init()
+const agents = 100000
+
+let last = performance.now()
+
+let state
+let particles
 
 function init() {
     camera = new THREE.OrthographicCamera(
@@ -21,44 +30,40 @@ function init() {
         1000
     )
 
-
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x000000)
     scene.add(camera)
 
-    const vertices = new Float32Array([
+    state = {
+        positionArray: [],
+        velocityArray: [],
+    }
 
-        // Bottom-left corner
-        -dims.x * 0.5 + 400,
-        -dims.y * 0.5 + 400,
-        0,
-        // Bottom-right corner
-        dims.x * 0.5 - 400,
-        -dims.y * 0.5 + 400,
-        0,
-        // Top-right corner
-        dims.x * 0.5 - 400,
-        dims.y * 0.5 - 400,
-        0,
-        // Top-left corner
-        -dims.x * 0.5 + 400,
-        dims.y * 0.5 - 400,
-        0,
-    ])
+    // agent position and velocity
+    for (let i = 0; i < agents; i++) {
+        const pos_index = i * 3
+        const vel_index = i * 3
 
-    
+        state.positionArray[pos_index] = (Math.random() - 0.5) * dims.x
+        state.positionArray[pos_index + 1] = (Math.random() - 0.5) * dims.y
+        state.positionArray[pos_index + 2] = 0
 
-    const indices = [0, 1, 2, 0, 2, 3]
+        state.velocityArray[vel_index] = Math.random() * 10 - 5
+        state.velocityArray[vel_index + 1] = Math.random() * 10 - 5
+        state.velocityArray[vel_index + 2] = 0
+    }
 
+    // create particles
+
+    const particleMaterial = new THREE.PointsMaterial({ color: 0x00ff00 })
     const geometry = new THREE.BufferGeometry()
-    geometry.setIndex(indices)
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+    geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(state.positionArray, 3)
+    )
 
-    const wireframe = new THREE.WireframeGeometry(geometry)
-
-    const line = new THREE.LineSegments(wireframe)
-
-    scene.add(line)
+    particles = new THREE.Points(geometry, particleMaterial)
+    scene.add(particles)
 
     renderer = new THREE.WebGPURenderer({ antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
@@ -68,11 +73,26 @@ function init() {
 
     window.addEventListener('resize', onWindowResize)
     window.addEventListener('mousemove', onMouseMove)
+}
 
-    // gui
+function compute_velocity(velocityArray) {
+    // update velocity with random vaulue between -50  and 50
+    for (let i = 0; i < agents; i++) {
+        const vel_i = i * 3
 
-    const gui = new GUI()
-    gui
+        velocityArray[vel_i] = Math.random() * 100 - 50
+        velocityArray[vel_i + 1] = Math.random() * 100 - 50
+        velocityArray[vel_i + 2] = 0
+    }
+}
+
+function update_position(positionArray, velocityArray, deltaTime) {
+    for (let i = 0; i < agents; i++) {
+        const pos_i = i * 3
+        positionArray[pos_i] += velocityArray[pos_i] * deltaTime
+        positionArray[pos_i + 1] += velocityArray[pos_i + 1] * deltaTime
+        positionArray[pos_i + 2] += 0
+    }
 }
 
 function onWindowResize() {
@@ -96,7 +116,30 @@ function onMouseMove(event) {
 }
 
 function animate() {
-    const r = Date.now() * 0.005;
-    camera.rotation.set(Math.cos(0.01 * r), Math.sin(0.1 * r),  Math.cos(0.1 * r) * Math.sin(0.1 * r))
+    render()
+}
+
+function render() {
+    const now = performance.now()
+    let deltaTime = (now - last) / 1000
+
+    // if (deltaTime > 1) deltaTime = 1 // safety cap on large deltas
+    last = now
+
+    compute_velocity(state.velocityArray)
+    update_position(state.positionArray, state.velocityArray, deltaTime)
+
+    const positions = particles.geometry.attributes.position.array
+
+    for (let i = 0; i < agents; i++) {
+        const pos_i = i * 3
+        positions[pos_i] = state.positionArray[pos_i]
+        positions[pos_i + 1] = state.positionArray[pos_i + 1]
+        positions[pos_i + 2] = state.positionArray[pos_i + 2]
+    }
+
+    particles.geometry.attributes.position.needsUpdate = true
     renderer.render(scene, camera)
 }
+
+init()

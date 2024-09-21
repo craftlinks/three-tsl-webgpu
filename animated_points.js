@@ -1,6 +1,5 @@
 // TODO:
-// - instead of points, I want to use a plane_geometry [ x ]
-//    - performance is horrible, How do I improve it without leaving JS?
+// - instead of points, I want to use a plane_geometry
 // - replace plane-geometry with a customn geometry
 // - add an anchor-trails
 
@@ -14,12 +13,12 @@ const dims = {
     y: canvas.clientHeight,
 }
 
-const agents = 2000
+const agents = 100000
 
 let last = performance.now()
 
 let state
-let particles = []
+let particles
 
 function init() {
     camera = new THREE.OrthographicCamera(
@@ -52,23 +51,19 @@ function init() {
         state.velocityArray[vel_index] = Math.random() * 10 - 5
         state.velocityArray[vel_index + 1] = Math.random() * 10 - 5
         state.velocityArray[vel_index + 2] = 0
-    
-        // create particles
-
-        const particleMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-        const geometry = new THREE.PlaneGeometry(3,3)
-
-
-        let particle = new THREE.Mesh(geometry, particleMaterial)
-        particle.position.x = state.positionArray[pos_index]
-        particle.position.y = state.positionArray[pos_index + 1]
-        particle.position.z = state.positionArray[pos_index + 2]
-        particles.push(particle)
-        scene.add(particles[i])
-    
     }
 
+    // create particles
 
+    const particleMaterial = new THREE.PointsMaterial({ color: 0x00ff00 })
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(state.positionArray, 3)
+    )
+
+    particles = new THREE.Points(geometry, particleMaterial)
+    scene.add(particles)
 
     renderer = new THREE.WebGPURenderer({ antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
@@ -128,23 +123,22 @@ function render() {
     const now = performance.now()
     let deltaTime = (now - last) / 1000
 
-    //if (deltaTime > 1) deltaTime = 1 // safety cap on large deltas
+    // if (deltaTime > 1) deltaTime = 1 // safety cap on large deltas
     last = now
 
     compute_velocity(state.velocityArray)
     update_position(state.positionArray, state.velocityArray, deltaTime)
 
-    // const positions = particles.geometry.attributes.position.array
+    const positions = particles.geometry.attributes.position.array
 
     for (let i = 0; i < agents; i++) {
         const pos_i = i * 3
-        let particle = particles[i]
-        particle.position.x = state.positionArray[pos_i]
-        particle.position.y = state.positionArray[pos_i + 1]
-        particle.position.z = state.positionArray[pos_i + 2]
+        positions[pos_i] = state.positionArray[pos_i]
+        positions[pos_i + 1] = state.positionArray[pos_i + 1]
+        positions[pos_i + 2] = state.positionArray[pos_i + 2]
     }
 
-    // particles.geometry.attributes.position.needsUpdate = true
+    particles.geometry.attributes.position.needsUpdate = true
     renderer.render(scene, camera)
 }
 
